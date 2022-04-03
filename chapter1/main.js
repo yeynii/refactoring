@@ -3,9 +3,21 @@ const plays = require('./plays.json');
 const invoice = invoices[0]
 
 function statement(invoice, plays) {
-  let result = `청구 내역 (고객명: ${invoice.customer})\n`;
+  const statementData = {};
+  statementData.customer = invoice.customer;
+  statementData.performances = invoice.performances.map(enrichPerformance);
+  return renderPlainText(statementData, plays)
 
-  for (let perf of invoice.performances) {
+  function enrichPerformance(aPerformance) {
+    const result = Object.assign({}, aPerformance); // 얕은 복사 수행
+    return result;
+  }
+}
+
+function renderPlainText(data, plays){
+  let result = `청구 내역 (고객명: ${data.customer})\n`;
+
+  for (let perf of data.performances) {
     result += ` ${playFor(perf).name}: ${usd(amountFor(perf))} (${perf.audience}석)\n`;
   }
   result += `총액: ${usd(totalAmount())}\n`;
@@ -56,7 +68,7 @@ function statement(invoice, plays) {
 
   function totalVolumeCredits(){
     let result = 0;
-    for (let perf of invoice.performances) {
+    for (let perf of data.performances) {
       result += volumeCreditsFor(perf);
     }
     return result;
@@ -64,12 +76,12 @@ function statement(invoice, plays) {
 
   function totalAmount(){
     let result = 0;
-    for (let perf of invoice.performances) {
+    for (let perf of data.performances) {
       result += amountFor(perf);
     }
     return result;
   }
-}
 
+}
 
 console.log(statement(invoice, plays));
